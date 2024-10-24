@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monday.com App</title>
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+</head>
+<body>
+    <div id="app" class="App">
+        <p>Loading...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+
+    <script>
+        const monday = mondaySdk();
+        const appContainer = document.getElementById('app');
+
+        monday.listen("context", async (res) => {
+            const context = res.data;
+
+            // Set user information in the app
+            const userInfo = `
+                <div class="attention-box">
+                    <h1>Welcome to Monday Apps!</h1>
+                    <p>Your name: ${context.user.name}, User ID: ${context.user.id}</p>
+                </div>
+            `;
+            appContainer.innerHTML = userInfo;
+
+            // Fetch user's boards
+            await fetchBoards();
+        });
+
+        const fetchBoards = async () => {
+            try {
+                const response = await monday.api(`query {
+                    boards {
+                        id
+                        name
+                    }
+                }`);
+                const boards = response.data.boards;
+
+                const boardsList = `
+                    <h2>Your Boards:</h2>
+                    <ul>
+                        ${boards.map(board => `<li key="${board.id}">${board.name}</li>`).join('')}
+                    </ul>
+                `;
+                appContainer.innerHTML += boardsList; // Append boards to the container
+            } catch (error) {
+                console.error("Error fetching boards:", error);
+                appContainer.innerHTML += `<p>Error fetching boards. Please try again later.</p>`;
+            }
+        };
+    </script>
+    <style>
+        /* Optional: Basic styling */
+        .App {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .attention-box {
+            background-color: #e0f7fa;
+            border: 1px solid #4db6ac;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+    </style>
+</body>
+</html>
