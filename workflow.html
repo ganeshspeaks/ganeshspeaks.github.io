@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monday.com App</title>
-    <!-- <link rel="stylesheet" href="styles.css"> -->
 </head>
 <body>
     <div id="app" class="App">
@@ -20,11 +19,9 @@
         monday.listen("context", async (res) => {
             const context = res.data;
 
-            // Set user information in the app
-            // Set user information in the app
             const userInfo = `
                 <div class="attention-box">
-                    <h1>Welcome to Monday Apps!</h1>
+                    <h1>Welcom to Workflow App!</h1>
                     <p>Your name: ${context?.user?.name || 'Name not available'}, User ID: ${context.user?.id || 'ID not available'}</p>
                 </div>
             `;
@@ -52,7 +49,7 @@
                         </ul>
                     <div>
                 `;
-                appContainer.innerHTML += boardsList; // Append boards to the container
+                appContainer.innerHTML += boardsList;
             } catch (error) {
                 console.error("Error fetching boards:", error);
                 appContainer.innerHTML += `<p>Error fetching boards. Please try again later.</p>`;
@@ -60,7 +57,7 @@
         };
     </script>
     <style>
-        /* Optional: Basic styling */
+        
         .App {
             font-family: Arial, sans-serif;
             margin: 20px;
