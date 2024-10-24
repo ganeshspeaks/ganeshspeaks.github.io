@@ -21,10 +21,11 @@
             const context = res.data;
 
             // Set user information in the app
+            // Set user information in the app
             const userInfo = `
                 <div class="attention-box">
                     <h1>Welcome to Monday Apps!</h1>
-                    <p>Your name: ${context.user.name}, User ID: ${context.user.id}</p>
+                    <p>Your name: ${context?.user?.name || 'Name not available'}, User ID: ${context.user?.id || 'ID not available'}</p>
                 </div>
             `;
             appContainer.innerHTML = userInfo;
