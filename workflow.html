@@ -14,142 +14,166 @@
 
     <script>
         const monday = mondaySdk();
-        const appContainer = document.getElementById('app');
-        let boards = [];
+const appContainer = document.getElementById('app');
+let boards = [];
 
-        monday.listen("context", async (res) => {
-            const context = res.data;
-            
-            // Initialize the SDK with the token
-            monday.setToken(context.token);
+monday.listen("context", async (res) => {
+    const context = res.data;
+    monday.setToken(context.token);
 
-            // Fetch all users (including the current user)
-            const userInfo = await fetchUsers();
-            const currentUser = userInfo.find(user => user.id === context.user.id);
+    const userInfo = await fetchUsers();
+    const currentUser = userInfo.find(user => user.id === context.user.id);
 
-            const userContent = `
-                <div class="attention-box">
-                    <h1>Welcome to Monday Apps!</h1>
-                    <p>Your name: ${currentUser?.name || 'Name not available'}, User ID: ${context.user.id}</p>
-                </div>
-            `;
-            appContainer.innerHTML = userContent;
+    const userContent = `
+        <div class="attention-box">
+            <h1>Welcome to Monday Apps!</h1>
+            <p>Your name: ${currentUser?.name || 'Name not available'}, User ID: ${context.user.id}</p>
+        </div>
+    `;
+    appContainer.innerHTML = userContent;
 
-            // Fetch user's boards
-            await fetchBoards();
+    await fetchBoards();
+});
+
+const fetchUsers = async () => {
+    try {
+        const response = await monday.api(`query {
+            users {
+                id
+                name
+            }
+        }`);
+        return response.data.users;
+    } catch (error) {
+        console.error("Error fetching user details:", error);
+        return [];
+    }
+};
+
+const fetchBoards = async () => {
+    try {
+        const response = await monday.api(`query {
+            boards {
+                id
+                name
+            }
+        }`);
+        boards = response.data.boards;
+
+        const boardsList = `
+            <div class="board-list">
+                <h2>Your Boards:</h2>
+                <ul>
+                    ${boards.map(board => 
+                        `<li data-id="${board.id}" class="board-item">${board.name}</li>`
+                    ).join('')}
+                </ul>
+            </div>
+        `;
+        appContainer.innerHTML += boardsList;
+
+        document.querySelectorAll('.board-item').forEach(item => {
+            item.addEventListener('click', (event) => {
+                const boardId = event.target.getAttribute('data-id');
+                fetchBoardData(boardId);
+            });
         });
+    } catch (error) {
+        console.error("Error fetching boards:", error);
+        appContainer.innerHTML += `<p>Error fetching boards. Please try again later.</p>`;
+    }
+};
 
-        const fetchUsers = async () => {
-            try {
-                const response = await monday.api(`query {
-                    users {
-                        id
-                        name
-                    }
-                }`);
-                return response.data.users;
-            } catch (error) {
-                console.error("Error fetching user details:", error);
-                return [];
-            }
-        };
-
-        const fetchBoards = async () => {
-            try {
-                const response = await monday.api(`query {
-                    boards {
-                        id
-                        name
-                    }
-                }`);
-                boards = response.data.boards;
-
-                const boardsList = `
-                    <div class="board-list">
-                        <h2>Your Boards:</h2>
-                        <ul>
-                            ${boards.map(board => 
-                                `<li data-id="${board.id}" class="board-item">${board.name}</li>`
-                            ).join('')}
-                        </ul>
-                    </div>
-                `;
-                appContainer.innerHTML += boardsList;
-
-                document.querySelectorAll('.board-item').forEach(item => {
-                    item.addEventListener('click', (event) => {
-                        const boardId = event.target.getAttribute('data-id');
-                        fetchBoardData(boardId);
-                    });
-                });
-            } catch (error) {
-                console.error("Error fetching boards:", error);
-                appContainer.innerHTML += `<p>Error fetching boards. Please try again later.</p>`;
-            }
-        };
-
-        const fetchBoardData = async (boardId) => {
-            try {
-                // Fix 1: Wrap the boardId in quotes since it's a string parameter
-                const response = await monday.api(`query {
-                    boards(ids: ["${boardId}"]) {
-                        name
-                        items {
-                            id
-                            name
-                            column_values {
-                                id
-                                text
-                                title  # Add column title for better context
-                                type   # Add column type for proper handling
-                                value  # Add raw value in case text is empty
-                            }
-                        }
-                    }
-                }`);
-                
-                // Fix 2: Add error handling for empty response
-                if (!response.data || !response.data.boards || !response.data.boards[0]) {
-                    throw new Error('No board data received');
+const fetchBoardData = async (boardId) => {
+    try {
+        // Updated GraphQL query to match Monday.com's API structure
+        const query = `query ($boardId: [ID!]) {
+            boards(ids: $boardId) {
+                name
+                columns {
+                    id
+                    title
+                    type
                 }
-
-                const boardData = response.data.boards[0];
-
-                // Fix 3: Improve the display of column values with better formatting
-                const boardDetails = `
-                    <div class="board-details">
-                        <h2>${boardData.name}</h2>
-                        <button onclick="fetchBoards()" class="back-button">Back to Boards</button>
-                        <ul>
-                            ${boardData.items.map(item => `
-                                <li class="item-card">
-                                    <strong>${item.name}</strong>
-                                    <ul class="column-list">
-                                        ${item.column_values
-                                            .filter(column => column.title && (column.text || column.value))
-                                            .map(column => `
-                                                <li class="column-item">
-                                                    <span class="column-title">${column.title}:</span>
-                                                    <span class="column-value">${column.text || JSON.parse(column.value || '{}').value || 'N/A'}</span>
-                                                </li>
-                                            `).join('')}
-                                    </ul>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                `;
-                appContainer.innerHTML = boardDetails;
-            } catch (error) {
-                console.error("Error fetching board data:", error);
-                appContainer.innerHTML = `
-                    <div class="error-container">
-                        <p>Error fetching board data: ${error.message}</p>
-                        <button onclick="fetchBoards()" class="back-button">Back to Boards</button>
-                    </div>
-                `;
+                items {
+                    id
+                    name
+                    column_values {
+                        id
+                        text
+                        value
+                    }
+                }
             }
-        };
+        }`;
+
+        const variables = { boardId: [boardId] };
+
+        const response = await monday.api(query, { variables });
+        
+        if (!response.data || !response.data.boards || !response.data.boards[0]) {
+            throw new Error('No board data received');
+        }
+
+        const boardData = response.data.boards[0];
+        const columns = boardData.columns || [];
+
+        // Updated board details display with column titles from schema
+        const boardDetails = `
+            <div class="board-details">
+                <h2>${boardData.name}</h2>
+                <button onclick="fetchBoards()" class="back-button">Back to Boards</button>
+                
+                <table class="board-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            ${columns.map(column => `
+                                <th>${column.title}</th>
+                            `).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${boardData.items.map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                ${columns.map(column => {
+                                    const columnValue = item.column_values.find(cv => cv.id === column.id);
+                                    let displayValue = 'N/A';
+                                    
+                                    if (columnValue) {
+                                        if (columnValue.text) {
+                                            displayValue = columnValue.text;
+                                        } else if (columnValue.value) {
+                                            try {
+                                                const parsedValue = JSON.parse(columnValue.value);
+                                                displayValue = parsedValue.value || parsedValue.label || 'N/A';
+                                            } catch (e) {
+                                                displayValue = columnValue.value;
+                                            }
+                                        }
+                                    }
+                                    
+                                    return `<td>${displayValue}</td>`;
+                                }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        appContainer.innerHTML = boardDetails;
+    } catch (error) {
+        console.error("Error fetching board data:", error);
+        appContainer.innerHTML = `
+            <div class="error-container">
+                <p>Error fetching board data: ${error.message}</p>
+                <button onclick="fetchBoards()" class="back-button">Back to Boards</button>
+            </div>
+        `;
+    }
+};
     </script>
     <style>
         /* Optional: Basic styling */
