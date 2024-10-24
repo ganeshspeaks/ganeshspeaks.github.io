@@ -15,11 +15,12 @@
     <script>
         const monday = mondaySdk();
         const appContainer = document.getElementById('app');
+        let boards = [];  // This will store the fetched boards
 
         monday.listen("context", async (res) => {
             const context = res.data;
 
-            // Fetch all users
+            // Fetch all users (including the current user)
             const userInfo = await fetchUsers();
 
             // Get the current user from the users list (matching user.id from context)
@@ -61,31 +62,83 @@
                         name
                     }
                 }`);
-                const boards = response.data.boards;
+                boards = response.data.boards; // Store boards globally
 
                 const boardsList = `
-                    <div class="board">
+                    <div class="board-list">
                         <h2>Your Boards:</h2>
                         <ul>
-                            ${boards.map(board => `<li key="${board.id}">${board.name}</li>`).join('')}
+                            ${boards.map(board => 
+                                `<li data-id="${board.id}" class="board-item">${board.name}</li>`
+                            ).join('')}
                         </ul>
                     </div>
                 `;
-                appContainer.innerHTML += boardsList;
+                appContainer.innerHTML += boardsList; // Append boards to the container
+
+                // Add click event listeners to each board item
+                document.querySelectorAll('.board-item').forEach(item => {
+                    item.addEventListener('click', (event) => {
+                        const boardId = event.target.getAttribute('data-id');
+                        fetchBoardData(boardId); // Fetch and show board data when clicked
+                    });
+                });
             } catch (error) {
                 console.error("Error fetching boards:", error);
                 appContainer.innerHTML += `<p>Error fetching boards. Please try again later.</p>`;
             }
         };
+
+        const fetchBoardData = async (boardId) => {
+            try {
+                const response = await monday.api(`query {
+                    boards(ids: ${boardId}) {
+                        name
+                        items {
+                            id
+                            name
+                            column_values {
+                                id
+                                text
+                            }
+                        }
+                    }
+                }`);
+                
+                const boardData = response.data.boards[0];
+
+                const boardDetails = `
+                    <div class="board-details">
+                        <h2>${boardData.name}</h2>
+                        <ul>
+                            ${boardData.items.map(item => `
+                                <li>
+                                    <strong>${item.name}</strong>
+                                    <ul>
+                                        ${item.column_values.map(column => 
+                                            `<li>${column.id}: ${column.text}</li>`
+                                        ).join('')}
+                                    </ul>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                appContainer.innerHTML = boardDetails;  // Replace the current content with board details
+            } catch (error) {
+                console.error("Error fetching board data:", error);
+                appContainer.innerHTML += `<p>Error fetching board data. Please try again later.</p>`;
+            }
+        };
     </script>
     <style>
-        
+        /* Optional: Basic styling */
         .App {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
 
-        .attention-box, .board {
+        .attention-box, .board-list, .board-details {
             background-color: #e0f7fa;
             border: 1px solid #4db6ac;
             padding: 15px;
@@ -95,6 +148,21 @@
 
         h2 {
             margin-top: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .board-item {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+
+        .board-item:hover {
+            color: darkblue;
         }
     </style>
 </body>
