@@ -44,10 +44,12 @@
                 const boards = response.data.boards;
 
                 const boardsList = `
-                    <h2>Your Boards:</h2>
-                    <ul>
-                        ${boards.map(board => `<li key="${board.id}">${board.name}</li>`).join('')}
-                    </ul>
+                    <div class="board">
+                        <h2>Your Boards:</h2>
+                        <ul>
+                            ${boards.map(board => `<li key="${board.id}">${board.name}</li>`).join('')}
+                        </ul>
+                    <div>
                 `;
                 appContainer.innerHTML += boardsList; // Append boards to the container
             } catch (error) {
@@ -63,7 +65,7 @@
             margin: 20px;
         }
 
-        .attention-box {
+        .attention-box, .board {
             background-color: #e0f7fa;
             border: 1px solid #4db6ac;
             padding: 15px;
