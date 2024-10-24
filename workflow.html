@@ -15,18 +15,18 @@
     <script>
         const monday = mondaySdk();
         const appContainer = document.getElementById('app');
-        let boards = [];  // This will store the fetched boards
+        let boards = [];
 
         monday.listen("context", async (res) => {
             const context = res.data;
+            
+            // Initialize the SDK with the token
+            monday.setToken(context.token);
 
             // Fetch all users (including the current user)
             const userInfo = await fetchUsers();
-
-            // Get the current user from the users list (matching user.id from context)
             const currentUser = userInfo.find(user => user.id === context.user.id);
 
-            // Set user information in the app
             const userContent = `
                 <div class="attention-box">
                     <h1>Welcome to Monday Apps!</h1>
@@ -62,7 +62,7 @@
                         name
                     }
                 }`);
-                boards = response.data.boards; // Store boards globally
+                boards = response.data.boards;
 
                 const boardsList = `
                     <div class="board-list">
@@ -74,13 +74,12 @@
                         </ul>
                     </div>
                 `;
-                appContainer.innerHTML += boardsList; // Append boards to the container
+                appContainer.innerHTML += boardsList;
 
-                // Add click event listeners to each board item
                 document.querySelectorAll('.board-item').forEach(item => {
                     item.addEventListener('click', (event) => {
                         const boardId = event.target.getAttribute('data-id');
-                        fetchBoardData(boardId); // Fetch and show board data when clicked
+                        fetchBoardData(boardId);
                     });
                 });
             } catch (error) {
@@ -91,8 +90,9 @@
 
         const fetchBoardData = async (boardId) => {
             try {
+                // Fix 1: Wrap the boardId in quotes since it's a string parameter
                 const response = await monday.api(`query {
-                    boards(ids: ${boardId}) {
+                    boards(ids: ["${boardId}"]) {
                         name
                         items {
                             id
@@ -100,34 +100,54 @@
                             column_values {
                                 id
                                 text
+                                title  # Add column title for better context
+                                type   # Add column type for proper handling
+                                value  # Add raw value in case text is empty
                             }
                         }
                     }
                 }`);
                 
+                // Fix 2: Add error handling for empty response
+                if (!response.data || !response.data.boards || !response.data.boards[0]) {
+                    throw new Error('No board data received');
+                }
+
                 const boardData = response.data.boards[0];
 
+                // Fix 3: Improve the display of column values with better formatting
                 const boardDetails = `
                     <div class="board-details">
                         <h2>${boardData.name}</h2>
+                        <button onclick="fetchBoards()" class="back-button">Back to Boards</button>
                         <ul>
                             ${boardData.items.map(item => `
-                                <li>
+                                <li class="item-card">
                                     <strong>${item.name}</strong>
-                                    <ul>
-                                        ${item.column_values.map(column => 
-                                            `<li>${column.id}: ${column.text}</li>`
-                                        ).join('')}
+                                    <ul class="column-list">
+                                        ${item.column_values
+                                            .filter(column => column.title && (column.text || column.value))
+                                            .map(column => `
+                                                <li class="column-item">
+                                                    <span class="column-title">${column.title}:</span>
+                                                    <span class="column-value">${column.text || JSON.parse(column.value || '{}').value || 'N/A'}</span>
+                                                </li>
+                                            `).join('')}
                                     </ul>
                                 </li>
                             `).join('')}
                         </ul>
                     </div>
                 `;
-                appContainer.innerHTML = boardDetails;  // Replace the current content with board details
+                appContainer.innerHTML = boardDetails;
             } catch (error) {
                 console.error("Error fetching board data:", error);
-                appContainer.innerHTML += `<p>Error fetching board data. Please try again later.</p>`;
+                appContainer.innerHTML = `
+                    <div class="error-container">
+                        <p>Error fetching board data: ${error.message}</p>
+                        <button onclick="fetchBoards()" class="back-button">Back to Boards</button>
+                    </div>
+                `;
             }
         };
     </script>
