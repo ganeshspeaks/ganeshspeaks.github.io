@@ -37,28 +37,40 @@
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <h1>Monday.com Boards</h1>
   <div id="board-list"></div>
+
   <script>
-    // Initialize the monday SDK
     const monday = mondaySdk();
-    // Function to display boards
+    
     function displayBoards(boards) {
       const boardList = document.getElementById('board-list');
-      boardList.innerHTML = '';  // Clear existing content
+      boardList.innerHTML = '';
+
       boards.forEach(board => {
-        // Create a new div for each board
+        
         const boardDiv = document.createElement('div');
         boardDiv.className = 'board';
-        // Add board name and ID
+        
         boardDiv.innerHTML = `
           <h2>${board.name}</h2>
           <p>ID: ${board.id}</p>
         `;
-        // Append the board div to the board list
+        
         boardList.appendChild(boardDiv);
       });
     }
-    // Fetch boards using the monday API
-    monday.api(`query { boards(limit: 5) { name id } }`)
+    
+    monday.api(`
+        query { 
+            boards(limit: 5) { 
+                name 
+                id 
+                columns {
+                    title
+                    type
+                }
+            }
+        }
+    `)
       .then(res => {
         const boards = res.data.boards;
         displayBoards(boards);  // Call function to display the boards
