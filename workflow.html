@@ -83,7 +83,7 @@
   });
 }
         
-    monday.api(`
+monday.api(`
   query {
     boards(limit: 5) {
       name
@@ -96,11 +96,13 @@
         id
         title
       }
-      items(limit: 5) {
-        name
-        column_values {
-          id
-          text
+      items_page(limit: 5) {
+        items {
+          name
+          column_values {
+            id
+            text
+          }
         }
       }
     }
@@ -110,7 +112,14 @@
     }
   }
 `)
-
+.then(res => {
+  const boards = res.data.boards;
+  const user = res.data.me;
+  displayBoards(boards, user);
+})
+.catch(err => {
+  console.error("Error fetching data:", err);
+});
   </script>
 </body>
 </html>
