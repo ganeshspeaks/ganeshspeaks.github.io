@@ -98,25 +98,27 @@
     }
 
     // Fetch boards using the monday API with columns and groups
+
     monday.api(`
-      query {
-        boards (limit: 5) {
-          name
-          id
-          description
-          columns {
-            title
-            type
-          }
-          groups {
-            id
-            title
-            items {
-              name
-            }
-          }
-        }
-      }
+query {
+  me {
+    name
+  }
+  boards(limit: 5) {
+    name
+
+    columns {
+      title
+      id
+      type
+    }
+
+    groups {
+    	title
+      id
+    }
+  }
+}
     `)
     .then(res => {
       const boards = res.data.boards;
