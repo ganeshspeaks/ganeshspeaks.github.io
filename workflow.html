@@ -97,41 +97,81 @@
     }
 
     // Fetch boards, columns, groups, and items using the monday API
-    monday.api(`
-      query {
-        boards (limit: 5) {
+
+monday.api(`
+  query {
+    boards (limit: 5) {
+      name
+      id
+      description
+      columns {
+        title
+        type
+      }
+      groups {
+        id
+        title
+      }
+      items_page {
+        items {
           name
-          id
-          description
-          columns {
-            title
-            type
+          group {
+            id
           }
-          groups {
+          column_values {
             id
             title
-          }
-          items {
-            name
-            group {
-              id
-            }
-            column_values {
-              id
-              title
-              text
-            }
+            text
           }
         }
       }
-    `)
-    .then(res => {
-      const boards = res.data.boards;
-      displayBoards(boards);  // Call function to display the boards, columns, groups, and items
-    })
-    .catch(err => {
-      console.error("Error fetching board data:", err);
-    });
+    }
+  }
+`)
+.then(res => {
+  const boards = res.data.boards;
+  displayBoards(boards);  // Call function to display the boards, columns, groups, and items
+})
+.catch(err => {
+  console.error("Error fetching board data:", err);
+});
+
+
+    // monday.api(`
+    //   query {
+    //     boards (limit: 5) {
+    //       name
+    //       id
+    //       description
+    //       columns {
+    //         title
+    //         type
+    //       }
+    //       groups {
+    //         id
+    //         title
+    //       }
+    //       items {
+    //         name
+    //         group {
+    //           id
+    //         }
+    //         column_values {
+    //           id
+    //           title
+    //           text
+    //         }
+    //       }
+    //     }
+    //   }
+    // `)
+    // .then(res => {
+    //   const boards = res.data.boards;
+    //   displayBoards(boards);  // Call function to display the boards, columns, groups, and items
+    // })
+    // .catch(err => {
+    //   console.error("Error fetching board data:", err);
+    // });
 
   </script>
 
