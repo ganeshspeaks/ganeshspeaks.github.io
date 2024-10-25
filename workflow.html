@@ -42,21 +42,26 @@
     const monday = mondaySdk();
     
     function displayBoards(boards) {
-      const boardList = document.getElementById('board-list');
-      boardList.innerHTML = '';
+    const boardList = document.getElementById('board-list');
+    boardList.innerHTML = '';
 
-      boards.forEach(board => {
-        
+    boards.forEach(board => {
         const boardDiv = document.createElement('div');
         boardDiv.className = 'board';
         
+        let columnsHTML = '';
+        board.columns.forEach(column => {
+        columnsHTML += `<p>${column.title} (${column.type})</p>`;
+        });
+
         boardDiv.innerHTML = `
-          <h2>${board.name}</h2>
-          <p>ID: ${board.id}</p>
+        <h2>${board.name}</h2>
+        <p>ID: ${board.id}</p>
+        ${columnsHTML}
         `;
         
         boardList.appendChild(boardDiv);
-      });
+    });
     }
     
     monday.api(`
