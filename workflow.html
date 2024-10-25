@@ -30,204 +30,42 @@
       margin: 0;
       font-size: 18px;
     }
-    .group, .column, .item {
-      padding-left: 20px;
-      margin-bottom: 5px;
-    }
-    .column, .item {
-      font-style: italic;
-    }
   </style>
 </head>
 <body>
-
-  <h1>Monday.com Boards with Columns, Groups, and Items</h1>
+    
+  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+  <h1>Monday.com Boards</h1>
   <div id="board-list"></div>
-
   <script>
     // Initialize the monday SDK
     const monday = mondaySdk();
-
-    // Function to display boards with columns, groups, and items
+    // Function to display boards
     function displayBoards(boards) {
       const boardList = document.getElementById('board-list');
       boardList.innerHTML = '';  // Clear existing content
-
       boards.forEach(board => {
         // Create a new div for each board
         const boardDiv = document.createElement('div');
         boardDiv.className = 'board';
-
         // Add board name and ID
-        let boardContent = `
-          <h2>${board.name} (ID: ${board.id})</h2>
-          <p>Description: ${board.description || 'No description available'}</p>
+        boardDiv.innerHTML = `
+          <h2>${board.name}</h2>
+          <p>ID: ${board.id}</p>
         `;
-
-        // Display groups
-        if (board.groups.length > 0) {
-          boardContent += `<h3>Groups:</h3>`;
-          board.groups.forEach(group => {
-            boardContent += `<div class="group"><strong>Group Name:</strong> ${group.title} (ID: ${group.id})</div>`;
-          });
-        }
-
-        // Display items and map to their group
-        if (board.items.length > 0) {
-          boardContent += `<h3>Items:</h3>`;
-          board.items.forEach(item => {
-            boardContent += `
-              <div class="item">
-                <strong>Item:</strong> ${item.name} 
-                (Group: ${item.group ? item.group.id : 'N/A'})
-                <br>
-                <strong>Column Values:</strong>
-                <ul>
-                  ${item.column_values.map(column => `<li>${column.title}: ${column.text}</li>`).join('')}
-                </ul>
-              </div>
-            `;
-          });
-        }
-
         // Append the board div to the board list
-        boardDiv.innerHTML = boardContent;
         boardList.appendChild(boardDiv);
       });
     }
-
-    // Fetch boards, columns, groups, and items using the monday API
-    let hasMorePages = true;
-let pageCursor = null;
-
-function fetchBoards() {
-  monday.api(`
-    query {
-      boards (limit: 5) {
-        name
-        id
-        description
-        columns {
-          title
-          type
-        }
-        groups {
-          id
-          title
-        }
-        items_page ${pageCursor ? `(cursor: "${pageCursor}")` : ''} {
-          items {
-            name
-            group {
-              id
-            }
-            column_values {
-              id
-              text
-            }
-          }
-          next_cursor
-        }
-      }
-    }
-  `)
-  .then(res => {
-    const boards = res.data.boards;
-    const itemsPage = res.data.boards[0].items_page; // Assuming only 1 board, adjust as necessary
-    displayBoards(boards);
-
-    // Check for more pages
-    if (itemsPage.next_cursor) {
-      pageCursor = itemsPage.next_cursor;
-    } else {
-      hasMorePages = false; // No more pages to fetch
-    }
-  })
-  .catch(err => {
-    console.error("Error fetching board data:", err);
-  });
-}
-
-// Call the function initially
-fetchBoards();
-
-
-// monday.api(`
-//   query {
-//     boards (limit: 5) {
-//       name
-//       id
-//       description
-//       columns {
-//         title
-//         type
-//       }
-//       groups {
-//         id
-//         title
-//       }
-//       items_page {
-//         items {
-//           name
-//           group {
-//             id
-//           }
-//           column_values {
-//             id
-//             title
-//             text
-//           }
-//         }
-//       }
-//     }
-//   }
-// `)
-// .then(res => {
-//   const boards = res.data.boards;
-//   displayBoards(boards);  // Call function to display the boards, columns, groups, and items
-// })
-// .catch(err => {
-//   console.error("Error fetching board data:", err);
-// });
-
-
-    // monday.api(`
-    //   query {
-    //     boards (limit: 5) {
-    //       name
-    //       id
-    //       description
-    //       columns {
-    //         title
-    //         type
-    //       }
-    //       groups {
-    //         id
-    //         title
-    //       }
-    //       items {
-    //         name
-    //         group {
-    //           id
-    //         }
-    //         column_values {
-    //           id
-    //           title
-    //           text
-    //         }
-    //       }
-    //     }
-    //   }
-    // `)
-    // .then(res => {
-    //   const boards = res.data.boards;
-    //   displayBoards(boards);  // Call function to display the boards, columns, groups, and items
-    // })
-    // .catch(err => {
-    //   console.error("Error fetching board data:", err);
-    // });
-
+    // Fetch boards using the monday API
+    monday.api(`query { boards(limit: 5) { name id } }`)
+      .then(res => {
+        const boards = res.data.boards;
+        displayBoards(boards);  // Call function to display the boards
+      })
+      .catch(err => {
+        console.error("Error fetching boards:", err);
+      });
   </script>
-
 </body>
 </html>
