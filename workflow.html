@@ -65,7 +65,7 @@
     });
 
     let itemsHTML = '';
-    board.items.forEach(item => {
+    board.items_page.items.forEach(item => {
       itemsHTML += `<h4>${item.name}</h4>`;
       item.column_values.forEach(column_value => {
         itemsHTML += `<p>${column_value.id}: ${column_value.text}</p>`;
