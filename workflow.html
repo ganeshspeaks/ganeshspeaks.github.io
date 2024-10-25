@@ -41,48 +41,75 @@
   <script>
     const monday = mondaySdk();
     
-    function displayBoards(boards) {
+    function displayBoards(boards, user) {
     const boardList = document.getElementById('board-list');
     boardList.innerHTML = '';
 
+    // Display user information
+    const userDiv = document.createElement('div');
+    userDiv.innerHTML = `
+        <h3>User: ${user.name}</h3>
+        <p>Admin: ${user.is_admin ? 'Yes' : 'No'}</p>
+    `;
+    boardList.appendChild(userDiv);
+
+    // Display boards
     boards.forEach(board => {
         const boardDiv = document.createElement('div');
         boardDiv.className = 'board';
         
         let columnsHTML = '';
         board.columns.forEach(column => {
-        columnsHTML += `<p>${column.title} (${column.type})</p>`;
+            columnsHTML += `<p>${column.title} (${column.type})</p>`;
+        });
+
+        let groupsHTML = '';
+        board.groups.forEach(group => {
+            groupsHTML += `<h4>${group.title}</h4>`;
+            groupsHTML += `<p>Group ID: ${group.id}</p>`;
         });
 
         boardDiv.innerHTML = `
-        <h2>${board.name}</h2>
-        <p>ID: ${board.id}</p>
-        ${columnsHTML}
+            <h2>${board.name}</h2>
+            <p>ID: ${board.id}</p>
+            ${columnsHTML}
+            ${groupsHTML}
         `;
         
         boardList.appendChild(boardDiv);
     });
-    }
+}
+
     
-    monday.api(`
-        query { 
-            boards(limit: 5) { 
-                name 
-                id 
-                columns {
-                    title
-                    type
-                }
-            }
-        }
-    `)
-      .then(res => {
-        const boards = res.data.boards;
-        displayBoards(boards);  // Call function to display the boards
-      })
-      .catch(err => {
-        console.error("Error fetching boards:", err);
-      });
+monday.api(`
+  query {
+    boards(limit: 5) {
+      name
+      id
+      columns {
+        title
+        type
+      }
+      groups {
+        id
+        title
+      }
+    }
+    me {
+      name
+      is_admin
+    }
+  }
+`)
+.then(res => {
+  const boards = res.data.boards;
+  const user = res.data.me; // Get user information
+  displayBoards(boards, user);  // Call function to display boards and user
+})
+.catch(err => {
+  console.error("Error fetching data:", err);
+});
+
   </script>
 </body>
 </html>
