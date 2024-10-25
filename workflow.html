@@ -34,54 +34,56 @@
 </head>
 <body>
     
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+  
   <h1>Monday.com Boards</h1>
   <div id="board-list"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <script>
     const monday = mondaySdk();
     
     function displayBoards(boards, user) {
-    const boardList = document.getElementById('board-list');
-    boardList.innerHTML = '';
+  const boardList = document.getElementById('board-list');
+  boardList.innerHTML = '';
 
-    // Display user information
-    const userDiv = document.createElement('div');
-    userDiv.innerHTML = `
-        <h3>User: ${user.name}</h3>
-        <p>Admin: ${user.is_admin ? 'Yes' : 'No'}</p>
-    `;
-    boardList.appendChild(userDiv);
+  // Display user information
+  const userDiv = document.createElement('div');
+  userDiv.innerHTML = `
+    <h3>User: ${user.name}</h3>
+    <p>Admin: ${user.is_admin ? 'Yes' : 'No'}</p>
+  `;
+  boardList.appendChild(userDiv);
 
-    // Display boards
-    boards.forEach(board => {
-        const boardDiv = document.createElement('div');
-        boardDiv.className = 'board';
-        
-        let columnsHTML = '';
-        board.columns.forEach(column => {
-            columnsHTML += `<p>${column.title} (${column.type})</p>`;
-        });
-
-        let groupsHTML = '';
-        board.groups.forEach(group => {
-            groupsHTML += `<h4>${group.title}</h4>`;
-            groupsHTML += `<p>Group ID: ${group.id}</p>`;
-        });
-
-        boardDiv.innerHTML = `
-            <h2>${board.name}</h2>
-            <p>ID: ${board.id}</p>
-            ${columnsHTML}
-            ${groupsHTML}
-        `;
-        
-        boardList.appendChild(boardDiv);
-    });
-}
-
+  // Display boards
+  boards.forEach(board => {
+    const boardDiv = document.createElement('div');
+    boardDiv.className = 'board';
     
-monday.api(`
+    let columnsHTML = '';
+    board.columns.forEach(column => {
+      columnsHTML += `<p>${column.title} (${column.type})</p>`;
+    });
+
+    let itemsHTML = '';
+    board.items.forEach(item => {
+      itemsHTML += `<h4>${item.name}</h4>`;
+      item.column_values.forEach(column_value => {
+        itemsHTML += `<p>${column_value.id}: ${column_value.text}</p>`;
+      });
+    });
+
+    boardDiv.innerHTML = `
+      <h2>${board.name}</h2>
+      <p>ID: ${board.id}</p>
+      ${columnsHTML}
+      ${itemsHTML}
+    `;
+    
+    boardList.appendChild(boardDiv);
+  });
+}
+        
+    monday.api(`
   query {
     boards(limit: 5) {
       name
@@ -94,6 +96,13 @@ monday.api(`
         id
         title
       }
+      items(limit: 5) {
+        name
+        column_values {
+          id
+          text
+        }
+      }
     }
     me {
       name
@@ -101,14 +110,6 @@ monday.api(`
     }
   }
 `)
-.then(res => {
-  const boards = res.data.boards;
-  const user = res.data.me; // Get user information
-  displayBoards(boards, user);  // Call function to display boards and user
-})
-.catch(err => {
-  console.error("Error fetching data:", err);
-});
 
   </script>
 </body>
