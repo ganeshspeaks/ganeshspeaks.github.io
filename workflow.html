@@ -58,68 +58,84 @@
   boards.forEach(board => {
     const boardDiv = document.createElement('div');
     boardDiv.className = 'board';
-    
-    let columnsHTML = '';
-    board.columns.forEach(column => {
-      columnsHTML += `<p>${column.title} (${column.type})</p>`;
-    });
 
-    let itemsHTML = '';
+    // Create table to display columns and items
+    let tableHTML = `
+      <table border="1" cellspacing="0" cellpadding="10">
+        <thead>
+          <tr>
+            ${board.columns.map(column => `<th>${column.title} (${column.type})</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // For each item, create a row and display corresponding column values
     board.items_page.items.forEach(item => {
-      itemsHTML += `<h4>${item.name}</h4>`;
-      item.column_values.forEach(column_value => {
-        itemsHTML += `<p>${column_value.id}: ${column_value.text}</p>`;
+      tableHTML += '<tr>';
+      board.columns.forEach((column, index) => {
+        const columnValue = item.column_values[index]; // Assumes column_values are in the same order as columns
+        tableHTML += `<td>${columnValue ? columnValue.text : 'N/A'}</td>`;
       });
+      tableHTML += '</tr>';
     });
 
+    tableHTML += `
+        </tbody>
+      </table>
+    `;
+
+    // Add the board name and ID above the table
     boardDiv.innerHTML = `
       <h2>${board.name}</h2>
       <p>ID: ${board.id}</p>
-      ${columnsHTML}
-      ${itemsHTML}
+      ${tableHTML}
     `;
-    
+
+    // Append the board div to the board list
     boardList.appendChild(boardDiv);
   });
 }
+
         
-monday.api(`
-  query {
-    boards(limit: 5) {
-      name
-      id
-      columns {
-        title
-        type
-      }
-      groups {
-        id
-        title
-      }
-      items_page(limit: 5) {
-        items {
+    monday.api(`
+      query {
+        boards(limit: 5) {
           name
-          column_values {
+          id
+          columns {
+            title
+            type
+          }
+          groups {
             id
-            text
+            title
+          }
+          items_page(limit: 5) {
+            items {
+              name
+              column_values {
+                id
+                text
+              }
+            }
           }
         }
+        me {
+          name
+          is_admin
+        }
       }
-    }
-    me {
-      name
-      is_admin
-    }
-  }
-`)
-.then(res => {
-  const boards = res.data.boards;
-  const user = res.data.me;
-  displayBoards(boards, user);
-})
-.catch(err => {
-  console.error("Error fetching data:", err);
-});
+    `)
+    .then(res => {
+      const boards = res.data.boards;
+      const user = res.data.me;
+      displayBoards(boards, user);
+    })
+    .catch(err => {
+      console.error("Error fetching data:", err);
+    });
+
   </script>
 </body>
 </html>
