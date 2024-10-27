@@ -77,7 +77,35 @@
       // Loop through each column to find the matching column value
       board.columns.forEach(column => {
         const columnValue = item.column_values.find(val => val.id === column.id);
-        tableHTML += `<td>${columnValue && columnValue.text ? columnValue.text : 'N/A'}</td>`;
+        
+        // Handle different column types (text, person, status, etc.)
+        let cellValue = 'N/A'; // Default if no value is found
+
+        if (columnValue) {
+          if (columnValue.text) {
+            cellValue = columnValue.text;
+          } else if (columnValue.value) {
+            // Handle specific column types, e.g., person or status
+            try {
+              const valueObject = JSON.parse(columnValue.value);
+
+              if (column.type === 'person' && valueObject.personsAndTeams) {
+                cellValue = valueObject.personsAndTeams.map(p => p.name).join(', ');
+              } else if (column.type === 'status' && valueObject.label) {
+                cellValue = valueObject.label;
+              } else if (column.type === 'date' && valueObject.date) {
+                cellValue = valueObject.date;
+              } else if (column.type === 'file' && valueObject.files && valueObject.files.length > 0) {
+                cellValue = valueObject.files.map(f => f.name).join(', ');
+              }
+            } catch (err) {
+              cellValue = 'N/A'; // If parsing fails, show 'N/A'
+            }
+          }
+        }
+
+        // Add the cell value to the table
+        tableHTML += `<td>${cellValue}</td>`;
       });
 
       tableHTML += '</tr>';
