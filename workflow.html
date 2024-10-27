@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monday.com Boards with Columns, Groups, and Items</title>
+  <title>Monday.com Boards with Edit Functionality</title>
   
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   
@@ -51,19 +51,99 @@
     .board-table tr:hover {
       background-color: #f5f5f5;
     }
+    .edit-btn {
+      background-color: #2D5F9A;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit-btn:hover {
+      background-color: #224b7a;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    .modal-content {
+      position: relative;
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .modal form {
+      display: grid;
+      gap: 15px;
+    }
+    .form-group {
+      display: grid;
+      gap: 5px;
+    }
+    .form-group label {
+      font-weight: 600;
+    }
+    .form-group input, 
+    .form-group select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .save-btn {
+      background-color: #2D5F9A;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .cancel-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-    
   <h1>Monday.com Boards</h1>
   <div id="board-list"></div>
+  
+  <!-- Modal for editing -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h2>Edit Item</h2>
+      <div id="editFormContainer"></div>
+    </div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <script>
     const monday = mondaySdk();
-    monday.setToken('eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQyODI0MjUwNSwiYWFpIjoxMSwidWlkIjo2NjczNDQyMiwiaWFkIjoiMjAyNC0xMC0yNVQxMzo1MzoxOC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjM4Nzk1MTMsInJnbiI6ImV1YzEifQ.ZI7fLqT67BtxqvQEpKxNRyYdDEa8hvAykgIkxvno-q4');
     
+    
+    let boardsData = []; // Store boards data globally
+
     function displayBoards(boards, user) {
+      boardsData = boards; // Store boards data
       const boardList = document.getElementById('board-list');
       boardList.innerHTML = '';
 
@@ -80,24 +160,25 @@
         const boardDiv = document.createElement('div');
         boardDiv.className = 'board';
 
-        // Filter out duplicate columns and any 'name' columns from the board columns
+        // Filter out duplicate columns and any 'name' columns
         const uniqueColumns = Array.from(new Set(board.columns.map(col => col.id)))
           .map(id => board.columns.find(col => col.id === id))
           .filter(col => col.id !== 'name' && col.title.toLowerCase() !== 'name');
 
-        // Create table to display columns and items
+        // Create table
         let tableHTML = `
           <table class="board-table">
             <thead>
               <tr>
                 <th>Name</th>
                 ${uniqueColumns.map(column => `<th>${column.title}</th>`).join('')}
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
         `;
 
-        // For each item, create a row and display corresponding column values
+        // For each item, create a row
         board.items_page.items.forEach(item => {
           tableHTML += '<tr>';
           
@@ -115,27 +196,16 @@
               } else if (columnValue.value) {
                 try {
                   const valueObject = JSON.parse(columnValue.value);
-
                   switch (column.type) {
                     case 'person':
-                      if (valueObject.personsAndTeams) {
-                        cellValue = valueObject.personsAndTeams.map(p => p.name).join(', ');
-                      }
+                      cellValue = valueObject.personsAndTeams ? 
+                        valueObject.personsAndTeams.map(p => p.name).join(', ') : 'N/A';
                       break;
                     case 'status':
-                      if (valueObject.label) {
-                        cellValue = valueObject.label;
-                      }
+                      cellValue = valueObject.label || 'N/A';
                       break;
                     case 'date':
-                      if (valueObject.date) {
-                        cellValue = valueObject.date;
-                      }
-                      break;
-                    case 'file':
-                      if (valueObject.files && valueObject.files.length > 0) {
-                        cellValue = valueObject.files.map(f => f.name).join(', ');
-                      }
+                      cellValue = valueObject.date || 'N/A';
                       break;
                     default:
                       cellValue = columnValue.value;
@@ -149,6 +219,15 @@
             tableHTML += `<td>${cellValue}</td>`;
           });
 
+          // Add edit button
+          tableHTML += `
+            <td>
+              <button class="edit-btn" onclick="editItem('${item.id}', '${board.id}')">
+                Edit
+              </button>
+            </td>
+          `;
+
           tableHTML += '</tr>';
         });
 
@@ -157,55 +236,162 @@
           </table>
         `;
 
-        // Add the board name and ID above the table
+        // Add the board name and ID
         boardDiv.innerHTML = `
           <h2>${board.name}</h2>
           <p>ID: ${board.id}</p>
           ${tableHTML}
         `;
 
-        // Append the board div to the board list
         boardList.appendChild(boardDiv);
       });
     }
 
-    monday.api(`
-      query {
-        boards(limit: 5) {
-          name
-          id
-          columns {
+    function editItem(itemId, boardId) {
+      const board = boardsData.find(b => b.id === boardId);
+      const item = board.items_page.items.find(i => i.id === itemId);
+      
+      // Create form HTML
+      let formHTML = `<form id="editForm" onsubmit="saveItemChanges(event, '${itemId}', '${boardId}')">`;
+      
+      // Add name field
+      formHTML += `
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" value="${item.name}" required>
+        </div>
+      `;
+
+      // Add other fields based on column type
+      board.columns.forEach(column => {
+        const columnValue = item.column_values.find(cv => cv.id === column.id);
+        let value = columnValue ? columnValue.text || '' : '';
+        
+        formHTML += `
+          <div class="form-group">
+            <label for="${column.id}">${column.title}:</label>
+        `;
+
+        // Different input types based on column type
+        switch (column.type) {
+          case 'date':
+            formHTML += `<input type="date" id="${column.id}" value="${value}">`;
+            break;
+          case 'status':
+            formHTML += `
+              <select id="${column.id}">
+                <option value="Done" ${value === 'Done' ? 'selected' : ''}>Done</option>
+                <option value="Working on it" ${value === 'Working on it' ? 'selected' : ''}>Working on it</option>
+                <option value="Stuck" ${value === 'Stuck' ? 'selected' : ''}>Stuck</option>
+              </select>
+            `;
+            break;
+          default:
+            formHTML += `<input type="text" id="${column.id}" value="${value}">`;
+        }
+
+        formHTML += `</div>`;
+      });
+
+      formHTML += `
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" onclick="closeEditForm()">Cancel</button>
+          <button type="submit" class="save-btn">Save Changes</button>
+        </div>
+      </form>`;
+
+      // Display the form in the modal
+      document.getElementById('editFormContainer').innerHTML = formHTML;
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditForm() {
+      document.getElementById('editModal').style.display = 'none';
+      document.getElementById('editFormContainer').innerHTML = '';
+    }
+
+    function saveItemChanges(event, itemId, boardId) {
+      event.preventDefault();
+      
+      const form = document.getElementById('editForm');
+      const columnValues = {};
+      
+      // Collect values from the form
+      form.querySelectorAll('input, select').forEach(input => {
+        if (input.id !== 'name') { // Skip the name field as it's handled separately
+          columnValues[input.id] = input.value;
+        }
+      });
+
+      // Update the item using monday.com API
+      monday.api(`
+        mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+          change_multiple_column_values(item_id: $itemId, board_id: $boardId, column_values: $columnValues) {
             id
-            title
-            type
           }
-          items_page(limit: 5) {
-            items {
-              name
-              column_values {
+        }
+      `, {
+        variables: {
+          itemId: itemId,
+          boardId: boardId,
+          columnValues: JSON.stringify(columnValues)
+        }
+      })
+      .then(res => {
+        console.log("Item updated successfully:", res);
+        closeEditForm();
+        // Refresh the data
+        fetchBoardData();
+      })
+      .catch(err => {
+        console.error("Error updating item:", err);
+        alert("Error updating item. Please try again.");
+      });
+    }
+
+    function fetchBoardData() {
+      monday.api(`
+        query {
+          boards(limit: 5) {
+            name
+            id
+            columns {
+              id
+              title
+              type
+            }
+            items_page(limit: 5) {
+              items {
                 id
-                text
-                value
+                name
+                column_values {
+                  id
+                  text
+                  value
+                }
               }
             }
           }
+          me {
+            name
+            is_admin
+          }
         }
-        me {
-          name
-          is_admin
-        }
-      }
-    `)
-    .then(res => {
-      console.log("API Response:", res);
-      const boards = res.data.boards;
-      const user = res.data.me;
-      displayBoards(boards, user);
-    })
-    .catch(err => {
-      console.error("Error fetching data:", err);
-      document.getElementById('board-list').innerHTML = `<p>Error: ${err.message}</p>`;
-    });
+      `)
+      .then(res => {
+        console.log("API Response:", res);
+        const boards = res.data.boards;
+        const user = res.data.me;
+        displayBoards(boards, user);
+      })
+      .catch(err => {
+        console.error("Error fetching data:", err);
+        document.getElementById('board-list').innerHTML = `<p>Error: ${err.message}</p>`;
+      });
+    }
+
+    // Initial data fetch
+    fetchBoardData();
   </script>
 </body>
 </html>
