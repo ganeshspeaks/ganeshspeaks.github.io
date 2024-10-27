@@ -30,143 +30,182 @@
       margin: 0;
       font-size: 18px;
     }
+    .board-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    .board-table th, 
+    .board-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .board-table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+    .board-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .board-table tr:hover {
+      background-color: #f5f5f5;
+    }
   </style>
 </head>
 <body>
     
-  
   <h1>Monday.com Boards</h1>
   <div id="board-list"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <script>
     const monday = mondaySdk();
+    monday.setToken('eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQyODI0MjUwNSwiYWFpIjoxMSwidWlkIjo2NjczNDQyMiwiaWFkIjoiMjAyNC0xMC0yNVQxMzo1MzoxOC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjM4Nzk1MTMsInJnbiI6ImV1YzEifQ.ZI7fLqT67BtxqvQEpKxNRyYdDEa8hvAykgIkxvno-q4');
     
     function displayBoards(boards, user) {
-  const boardList = document.getElementById('board-list');
-  boardList.innerHTML = '';
+      const boardList = document.getElementById('board-list');
+      boardList.innerHTML = '';
 
-  // Display user information
-  const userDiv = document.createElement('div');
-  userDiv.innerHTML = `
-    <h3>User: ${user.name}</h3>
-    <p>Admin: ${user.is_admin ? 'Yes' : 'No'}</p>
-  `;
-  boardList.appendChild(userDiv);
+      // Display user information
+      const userDiv = document.createElement('div');
+      userDiv.innerHTML = `
+        <h3>User: ${user.name}</h3>
+        <p>Admin: ${user.is_admin ? 'Yes' : 'No'}</p>
+      `;
+      boardList.appendChild(userDiv);
 
-  // Display boards
-  boards.forEach(board => {
-    const boardDiv = document.createElement('div');
-    boardDiv.className = 'board';
+      // Display boards
+      boards.forEach(board => {
+        const boardDiv = document.createElement('div');
+        boardDiv.className = 'board';
 
-    // Create table to display columns and items
-    let tableHTML = `
-      <table border="1" cellspacing="0" cellpadding="10">
-        <thead>
-          <tr>
-            ${board.columns.map(column => `<th>${column.title}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-    `;
+        // Filter out duplicate columns and any 'name' columns from the board columns
+        const uniqueColumns = Array.from(new Set(board.columns.map(col => col.id)))
+          .map(id => board.columns.find(col => col.id === id))
+          .filter(col => col.id !== 'name' && col.title.toLowerCase() !== 'name');
 
-    // For each item, create a row and display corresponding column values
-    board.items_page.items.forEach(item => {
-      tableHTML += '<tr>';
+        // Create table to display columns and items
+        let tableHTML = `
+          <table class="board-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                ${uniqueColumns.map(column => `<th>${column.title}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+        `;
 
-      // Loop through each column to find the matching column value
-      board.columns.forEach(column => {
-        const columnValue = item.column_values.find(val => val.id === column.id);
-        
-        // Handle different column types (text, person, status, etc.)
-        let cellValue = 'N/A'; // Default if no value is found
+        // For each item, create a row and display corresponding column values
+        board.items_page.items.forEach(item => {
+          tableHTML += '<tr>';
+          
+          // Add name column
+          tableHTML += `<td>${item.name}</td>`;
 
-        if (columnValue) {
-          if (columnValue.text) {
-            cellValue = columnValue.text;
-          } else if (columnValue.value) {
-            // Handle specific column types, e.g., person or status
-            try {
-              const valueObject = JSON.parse(columnValue.value);
+          // Add other columns
+          uniqueColumns.forEach(column => {
+            const columnValue = item.column_values.find(val => val.id === column.id);
+            let cellValue = 'N/A';
 
-              if (column.type === 'person' && valueObject.personsAndTeams) {
-                cellValue = valueObject.personsAndTeams.map(p => p.name).join(', ');
-              } else if (column.type === 'status' && valueObject.label) {
-                cellValue = valueObject.label;
-              } else if (column.type === 'date' && valueObject.date) {
-                cellValue = valueObject.date;
-              } else if (column.type === 'file' && valueObject.files && valueObject.files.length > 0) {
-                cellValue = valueObject.files.map(f => f.name).join(', ');
+            if (columnValue) {
+              if (columnValue.text) {
+                cellValue = columnValue.text;
+              } else if (columnValue.value) {
+                try {
+                  const valueObject = JSON.parse(columnValue.value);
+
+                  switch (column.type) {
+                    case 'person':
+                      if (valueObject.personsAndTeams) {
+                        cellValue = valueObject.personsAndTeams.map(p => p.name).join(', ');
+                      }
+                      break;
+                    case 'status':
+                      if (valueObject.label) {
+                        cellValue = valueObject.label;
+                      }
+                      break;
+                    case 'date':
+                      if (valueObject.date) {
+                        cellValue = valueObject.date;
+                      }
+                      break;
+                    case 'file':
+                      if (valueObject.files && valueObject.files.length > 0) {
+                        cellValue = valueObject.files.map(f => f.name).join(', ');
+                      }
+                      break;
+                    default:
+                      cellValue = columnValue.value;
+                  }
+                } catch (err) {
+                  console.error(`Error parsing value for column ${column.id}:`, err);
+                }
               }
-            } catch (err) {
-              cellValue = 'N/A'; // If parsing fails, show 'N/A'
+            }
+
+            tableHTML += `<td>${cellValue}</td>`;
+          });
+
+          tableHTML += '</tr>';
+        });
+
+        tableHTML += `
+            </tbody>
+          </table>
+        `;
+
+        // Add the board name and ID above the table
+        boardDiv.innerHTML = `
+          <h2>${board.name}</h2>
+          <p>ID: ${board.id}</p>
+          ${tableHTML}
+        `;
+
+        // Append the board div to the board list
+        boardList.appendChild(boardDiv);
+      });
+    }
+
+    monday.api(`
+      query {
+        boards(limit: 5) {
+          name
+          id
+          columns {
+            id
+            title
+            type
+          }
+          items_page(limit: 5) {
+            items {
+              name
+              column_values {
+                id
+                text
+                value
+              }
             }
           }
         }
-
-        // Add the cell value to the table
-        tableHTML += `<td>${cellValue}</td>`;
-      });
-
-      tableHTML += '</tr>';
-    });
-
-    tableHTML += `
-        </tbody>
-      </table>
-    `;
-
-    // Add the board name and ID above the table
-    boardDiv.innerHTML = `
-      <h2>${board.name}</h2>
-      <p>ID: ${board.id}</p>
-      ${tableHTML}
-    `;
-
-    // Append the board div to the board list
-    boardList.appendChild(boardDiv);
-  });
-}
-
-        
-    monday.api(`
-      query {
-  boards(limit: 5) {
-    name
-    id
-    columns {
-      id
-      title
-      type
-    }
-    items_page(limit: 5) {
-      items {
-        name
-        column_values {
-          id
-          text
-          value
+        me {
+          name
+          is_admin
         }
       }
-    }
-  }
-  me {
-    name
-    is_admin
-  }
-}
     `)
     .then(res => {
-  console.log("API Response:", res); // Log the entire response
-  const boards = res.data.boards;
-  const user = res.data.me;
-  displayBoards(boards, user);
-})
-.catch(err => {
-  console.error("Error fetching data:", err);
-  document.getElementById('board-list').innerHTML = `<p>Error: ${err.message}</p>`;
-});
-
+      console.log("API Response:", res);
+      const boards = res.data.boards;
+      const user = res.data.me;
+      displayBoards(boards, user);
+    })
+    .catch(err => {
+      console.error("Error fetching data:", err);
+      document.getElementById('board-list').innerHTML = `<p>Error: ${err.message}</p>`;
+    });
   </script>
 </body>
 </html>
