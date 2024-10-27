@@ -131,41 +131,41 @@
         
     monday.api(`
       query {
-        boards(limit: 5) {
-          name
+  boards(limit: 5) {
+    name
+    id
+    columns {
+      id
+      title
+      type
+    }
+    items_page(limit: 5) {
+      items {
+        name
+        column_values {
           id
-          columns {
-            title
-            type
-          }
-          groups {
-            id
-            title
-          }
-          items_page(limit: 5) {
-            items {
-              name
-              column_values {
-                id
-                text
-              }
-            }
-          }
-        }
-        me {
-          name
-          is_admin
+          text
+          value
         }
       }
+    }
+  }
+  me {
+    name
+    is_admin
+  }
+}
     `)
     .then(res => {
-      const boards = res.data.boards;
-      const user = res.data.me;
-      displayBoards(boards, user);
-    })
-    .catch(err => {
-      console.error("Error fetching data:", err);
-    });
+  console.log("API Response:", res); // Log the entire response
+  const boards = res.data.boards;
+  const user = res.data.me;
+  displayBoards(boards, user);
+})
+.catch(err => {
+  console.error("Error fetching data:", err);
+  document.getElementById('board-list').innerHTML = `<p>Error: ${err.message}</p>`;
+});
 
   </script>
 </body>
