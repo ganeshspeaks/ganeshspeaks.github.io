@@ -64,7 +64,7 @@
       <table border="1" cellspacing="0" cellpadding="10">
         <thead>
           <tr>
-            ${board.columns.map(column => `<th>${column.title} (${column.type})</th>`).join('')}
+            ${board.columns.map(column => `<th>${column.title}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
@@ -73,10 +73,13 @@
     // For each item, create a row and display corresponding column values
     board.items_page.items.forEach(item => {
       tableHTML += '<tr>';
-      board.columns.forEach((column, index) => {
-        const columnValue = item.column_values[index]; // Assumes column_values are in the same order as columns
-        tableHTML += `<td>${columnValue ? columnValue.text : 'N/A'}</td>`;
+
+      // Loop through each column to find the matching column value
+      board.columns.forEach(column => {
+        const columnValue = item.column_values.find(val => val.id === column.id);
+        tableHTML += `<td>${columnValue && columnValue.text ? columnValue.text : 'N/A'}</td>`;
       });
+
       tableHTML += '</tr>';
     });
 
