@@ -11,7 +11,7 @@ When we approach others with empathy, we not only make their lives a little brig
 
 > Remember, life is beautiful, when we share love and kindness towards people. 
 
-In the end, it's not the erguments that define use, but it's the love and kindness we show.
+In the end, it's not the arguments that define us, but it's the love and kindness we show.
 
 So, live each day with a kind heart. Forgive often, love deeply, and leave the world a little better than you found it.
 
