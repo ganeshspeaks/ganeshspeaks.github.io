@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Life Is Short: Choose Kindness Over Conflict"
+tags: ["lesson"]
 ---
 
 We never truly know when someone else's journey or our own might come to an end. Life is unpredictable - death could come at any moment. We're unaware of instant death, whether during a drive, a walk, or through some natural disaster. There are millions of things which can kill our lives. This uncertainty teaches us to cherish the time we have and treat others with kindness. We often argue with friends, family on silly things.
