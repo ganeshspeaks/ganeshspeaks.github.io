@@ -12,8 +12,8 @@ The question of God's existence has always been a paradox—no one can prove tha
 
 Whether we label ourselves as theist or atheist, devotion is a personal experience. By surrendering to the universe—Krishna—we transcend all boundaries and experience true liberation. As Krishna himself says:
 
-> "सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज |
-> अहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः ||" (Bhagavad Gita 18.66)
+***"सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज |***
+***अहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः ||*"** (Bhagavad Gita 18.66)
 
 *'Abandon all varieties of dharma and surrender unto Me alone. I shall liberate you; do not fear.'*
 
