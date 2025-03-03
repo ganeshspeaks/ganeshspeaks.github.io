@@ -11,9 +11,8 @@ Let's start with theism. A person who believes in God is a theist, while an athe
 The question of God's existence has always been a paradox—no one can prove that God exists, and no one can prove that He does not. This realization leads me to see the universe in two ways at the same time: as Krishna (God) and as just the universe. **The universe is both divine and simply what it is.** It is the ultimate paradox—everything and nothing, creation and destruction, infinite yet self-contained.
 
 Whether we label ourselves as theist or atheist, devotion is a personal experience. By surrendering to the universe—Krishna—we transcend all boundaries and experience true liberation. As Krishna himself says:
-
-**"सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज |**
-**अहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः ||"** (Bhagavad Gita 18.66)
+"सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज|
+अहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः|| (Bhagavad Gita 18.66)
 
 *'Abandon all varieties of dharma and surrender unto Me alone. I shall liberate you; do not fear.'*
 
