@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "What's Wrong with Gen Z?"
-tags: ["lesson"]
+tags: ["opinion"]
 ---
 
 
