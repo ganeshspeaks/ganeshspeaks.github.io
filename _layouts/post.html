@@ -9,9 +9,4 @@ layout: default
 
 <br/>
 <h2>Recent Posts</h2>
-{% assign recent_posts = site.posts | slice: 0, 5 %}
-<ul>
-    {% for post in recent_posts %}
-        <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
-    {% endfor %}
-</ul>
+{% include post_list.html %}
