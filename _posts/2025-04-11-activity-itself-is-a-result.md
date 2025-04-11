@@ -52,6 +52,9 @@ So whether you act with kindness, discipline, anger, or ego —
 Let’s stop chasing only outer rewards.  
 Let’s start valuing the inner rewards — the calm, joy, focus, and energy that come *just from doing the right thing*.
 
+In short -
+> Action itself is a result. Mental state is the real karma.
+
 **References**
 - Bhagavad Gita – Chapter 2, Verse 47
 - Neuroscience of Happiness – Studies on dopamine, oxytocin, and serotonin
