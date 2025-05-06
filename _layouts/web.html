@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GaneshOS - The Verse of Ganesh</title>
+  <style>
+    :root {
+      --primary: #00e6b8;
+      --secondary: #8e44ad;
+      --background: #0f111a;
+      --text: #f8f8f2;
+      --accent: #ff79c6;
+      --terminal-bg: rgba(18, 21, 29, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, var(--background) 0%, #121624 100%);
+      color: var(--text);
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    #terminal-container {
+      width: 100%;
+      max-width: 900px;
+      height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #terminal-header {
+      background-color: rgba(15, 17, 26, 0.9);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 8px;
+      margin-right: 20px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background-color: #ff5f56; }
+    .dot-yellow { background-color: #ffbd2e; }
+    .dot-green { background-color: #27c93f; }
+
+    .terminal-title {
+      color: var(--text);
+      font-size: 0.9rem;
+      opacity: 0.7;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    #terminal {
+      flex-grow: 1;
+      background-color: var(--terminal-bg);
+      padding: 1.5rem;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    #output {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .input-line {
+      display: flex;
+      align-items: center;
+    }
+
+    .prompt {
+      color: var(--primary);
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    input {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1em;
+      outline: none;
+      flex-grow: 1;
+    }
+
+    .command {
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px dashed;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: #ff94d5;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 18px;
+      background-color: var(--primary);
+      animation: blink 1s step-start infinite;
+      margin-left: 2px;
+      vertical-align: middle;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Section styling */
+    .section {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background-color: rgba(30, 34, 42, 0.5);
+      border-left: 3px solid var(--primary);
+    }
+
+    .section-mission { border-left-color: #ff79c6; }
+    .section-bitlab { border-left-color: #50fa7b; }
+    .section-soul { border-left-color: #8be9fd; }
+    .section-skills { border-left-color:cornflowerblue;}
+    .section-poems { border-left-color: #f1fa8c; }
+    .section-power { border-left-color: #bd93f9; }
+    .section-blog { border-left-color: #ffb86c; }
+
+    .emoji {
+      margin-right: 5px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      #terminal-container {
+        height: 85vh;
+        width: 95%;
+      }
+      
+      #terminal {
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #terminal-container {
+        height: 90vh;
+        width: 100%;
+        border-radius: 8px;
+      }
+      
+      #terminal {
+        padding: 0.75rem;
+      }
+      
+      .section {
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal-container">
+    <div id="terminal-header">
+      <div class="terminal-dots">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+      </div>
+      <div class="terminal-title">ganesh@GaneshOS:~</div>
+    </div>
+    <div id="terminal">
+      <div id="output"></div>
+      <div class="input-line">
+        <span class="prompt">$</span>
+        <input type="text" id="input" autofocus />
+        <span class="cursor"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const output = document.getElementById('output');
+    const input = document.getElementById('input');
+
+    const commands = {
+      help: `Available commands:
+  <span class="command">mission</span> - View my current life mission
+  <span class="command">bitlab</span> - BitLab project portfolio
+  <span class="command">soul</span> - Soul garden practices
+  <span class="command">skills</span> - My skills
+  <span class="command">poems</span> - View my poetry collection
+  <span class="command">power</span> - Power chamber status
+  <span class="command">blog</span> - View my latest blog posts
+  <span class="command">clear</span> - Clear terminal`,
+
+      mission: `<div class="section section-mission">
+  <span class="emoji">🚀</span><b>Mission:</b>
+  • Become a millionaire by Dec 2025
+  • Plant 1,000 trees
+  • Help 1,000 people
+  • Read 1,000 books
+  • Become the best version of Ganesh Kumar
+</div>`,
+
+      bitlab: `<div class="section section-bitlab">
+  <span class="emoji">🧪</span><b>BitLab Projects:</b>
+  • Study Friend - AI-powered learning companion
+  • BitOS - Personal operating system
+  • BitNote - Markdown thought organizer
+  • BitMindmap - Visual knowledge mapper
+  • BitX (coming soon) - Stealth project
+</div>`,
+
+        soul: `<div class="section section-soul">
+  <span class="emoji">🧘</span><b>Soul Garden:</b>
+  • Daily Mantra: Om Pragyanaam Brahma
+  • Yoga: 5:30 - 6:15 AM
+  • Meditation: 20 minutes, twice daily
+  • Core values: Gratitude, Discipline, Peace
+</div>`,
+
+        skills: `<div class="section section-skills">
+  <span class="emoji"></span><b>My Skills:</b>
+  • Web Development (HTML, CSS, JS, React.js, Node.js, TypeScript, Express.js)
+  • App Development (Flutter, Firebase)
+  • Programming Languages (Python, C++, GDScript)
+  • Graphics Designing
+  • Video Editing
+  • Extra Skills (Jekyll, Boostrap, Tailwind CSS, UI/UX Design, Arduino, GenAI)
+</div>`,
+
+      poems: `<div class="section section-poems">
+  <span class="emoji">🎭</span><b>Shayari Collection:</b>
+  "Main khud se ladta hoon har subah,
+  Taki shaam tak khud par garv kar saku."
+  
+  "Zindagi ki raahon mein thoda sa rukna sikho,
+  Khud se baatein karna sikho."
+</div>`,
+
+      power: `<div class="section section-power">
+  <span class="emoji">🔥</span><b>Power Chamber:</b>
+  • Current Mode: Beast Mode 💪
+  • Focus Streak: 17 days
+  • XP Earned Today: +42
+  • Rules: No distraction. No excuse. Only action.
+</div>`,
+
+      blog: `<div class="section section-blog">
+  <span class="emoji">📝</span><b>Latest Blog Posts:</b>
+  {% include post_list.html %}
+  • <a href="https://ganeshblog.com/mindful-productivity" target="_blank">Mindful Productivity Techniques</a>
+  • <a href="https://ganeshblog.com/coding-journey" target="_blank">My Coding Journey: Year One</a>
+  • <a href="https://ganeshblog.com/morning-routine" target="_blank">The Perfect Morning Routine</a>
+  • <a href="https://ganeshblog.com/blog" target="_blank">View All Posts →</a>
+</div>`,
+
+      clear: `clear`
+    };
+
+    const typeLines = [
+      "<span style='color: var(--primary)'>Initializing GaneshOS v1.0...</span>",
+      "<span style='color: var(--secondary)'>Loading soul modules...</span> <span style='color: #50fa7b'>✓</span>",
+      "<span style='color: var(--secondary)'>Compiling focus field...</span> <span style='color: #50fa7b'>✓</span>",
+      "<span style='color: var(--secondary)'>Activating neural pathways...</span> <span style='color: #50fa7b'>✓</span>",
+      "<span style='color: var(--accent)'>Mission activated: Building Products That People Love ❤️</span>",
+      "<span style='color: var(--text)'>Type <span class='command'>help</span> to explore My Universe 🌌</span>"
+    ];
+
+    let index = 0;
+    let charIndex = 0;
+    let currentLine = "";
+    let currentElement = null;
+
+    function typeNextChar() {
+      if (index < typeLines.length) {
+        if (!currentElement) {
+          currentElement = document.createElement('div');
+          currentElement.classList.add('fade-in');
+          output.appendChild(currentElement);
+        }
+        
+        if (charIndex < typeLines[index].length) {
+          currentLine += typeLines[index][charIndex];
+          currentElement.innerHTML = currentLine;
+          charIndex++;
+          setTimeout(typeNextChar, 20);
+        } else {
+          currentElement = null;
+          currentLine = "";
+          charIndex = 0;
+          index++;
+          setTimeout(typeNextChar, 300);
+        }
+      }
+    }
+
+    typeNextChar();
+
+    function processCommand(cmd) {
+      const commandDiv = document.createElement('div');
+      commandDiv.innerHTML = `<span class="prompt">$</span> ${cmd}`;
+      output.appendChild(commandDiv);
+      
+      if (commands[cmd]) {
+        if (cmd === 'clear') {
+          output.innerHTML = '';
+        } else {
+          const responseDiv = document.createElement('div');
+          responseDiv.classList.add('fade-in');
+          responseDiv.innerHTML = commands[cmd];
+          output.appendChild(responseDiv);
+        }
+      } else {
+        const errorDiv = document.createElement('div');
+        errorDiv.classList.add('fade-in');
+        errorDiv.innerHTML = `Command not found: <span style="color: #ff5555;">${cmd}</span>. Type <span class="command">help</span> for available commands.`;
+        output.appendChild(errorDiv);
+      }
+      
+      // Auto scroll to bottom
+      setTimeout(() => {
+        document.getElementById('terminal').scrollTop = document.getElementById('terminal').scrollHeight;
+      }, 100);
+    }
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const command = input.value.trim().toLowerCase();
+        if (command) {
+          processCommand(command);
+          input.value = '';
+        }
+      }
+    });
+
+    // Make command text clickable
+    output.addEventListener('click', function(e) {
+      if (e.target.classList.contains('command')) {
+        const command = e.target.textContent;
+        processCommand(command);
+        input.focus();
+      }
+    });
+
+    // Focus input when clicking anywhere in terminal
+    document.getElementById('terminal').addEventListener('click', function() {
+      input.focus();
+    });
+  </script>
+</body>
+</html>
