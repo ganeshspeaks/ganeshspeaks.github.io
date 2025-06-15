@@ -14,3 +14,4 @@ From this, I concluded that the brain of a Stithapragnya must be incredibly inte
 
 And I believe this state can be cultivated through deep **sadhana**, **bhakti**, and **other forms of yoga**.
 
+> Well, Stithapragnya state is beyond brain's function.
