@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganesh Kumar</title>
+    <meta name="description" content="Ganesh Kumar - Developer, Poet, Builder of digital tools and terminal dreams. Explore my work in an interactive shell.">
+    <link rel="stylesheet" href="/style.css" />
+
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="terminal">
+        <div class="terminal-header">
+            <span class="glitch">ganesh@bitcraftproduction:~$ terminal</span>
+            <div class="terminal-buttons">
+                <button class="btn close"></button>
+                <button class="btn minimize"></button>
+                <button class="btn maximize"></button>
+            </div>
+        </div>
+        
+        <div class="terminal-body" id="terminal-body">
+            <div class="output">
+<span class="success">Welcome to Ganesh Kumar's World</span>
+<span class="info">Type 'help' to see available commands</span>
+<span class="warning">═══════════════════════════════════════════════════════════</span>
+            </div>
+            
+            <div class="input-line">
+                <span class="prompt">ganesh@bitcraftproduction:~$</span>
+                <input type="text" class="command-input" id="command-input" autocomplete="off" spellcheck="false">
+                <span class="cursor"></span>
+            </div>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
